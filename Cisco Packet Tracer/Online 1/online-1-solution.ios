@@ -1,0 +1,123 @@
+! ===========R1==========
+! - Enable password: class
+    en
+    conf t
+    enable password class
+! - Console password: CSE 
+    line console 0
+    password CSE
+    login
+! - setup telnet
+    ! - up vlan 1
+        conf t
+        int vlan 1
+        no shutdown
+    ! - telnet password: WNL2022
+        line vty 0 4
+        password WNL2022
+        login 
+        end
+
+! - Configure port IPs and Clock rate
+    int s0/0/0
+    ip add 3.1.1.1 255.255.255.252
+    clock rate 64000
+    no shut
+
+    ip route 0.0.0.0 0.0.0.0 s0/0/0
+
+    conf t 
+    int g0/0.10
+    encapsulation dot1q 10
+    ip add 192.168.10.1 255.255.255.0
+
+    int g0/0.15
+    encapsulation dot1q 15
+    ip add 192.168.15.1 255.255.255.0
+
+    int g0/0.20
+    encapsulation dot1q 20
+    ip add 192.168.20.1 255.255.255.0
+
+    int g0/0.99
+    encapsulation dot1q 99
+    ip add 192.168.99.1 255.255.255.0
+
+    int g0/0
+    no shut
+
+! ========R2=======
+! - Config port IPs
+    en
+    conf t
+    int s0/0/0
+    ip add 3.1.1.2 255.255.255.252
+    no shut
+
+    int g0/0
+    ip add 192.168.100.1 255.255.255.0
+    no shut
+
+    ip route 0.0.0.0 0.0.0.0 s0/0/0
+! ========S2========
+! - VLANs 
+    en
+    conf t
+    vlan 10
+    name CSE
+    
+    vlan 15
+    name EEE
+
+    vlan 20
+    name ME 
+
+    vlan 99
+    name Management
+! - set native vlan
+    int g0/1
+    sw mode trunk
+    sw trunk native vlan 99
+    sw trunk allowed vlan 10,15,20,99
+    end
+! - set trunk port f0/1
+    int f0/1
+    sw mode trunk
+    sw trunk native vlan 99
+    sw trunk allowed vlan 10,15,20,99
+    end
+
+! - set other interfaces
+    int f0/5
+    sw mode access
+    sw access vlan 10
+
+    int f0/6
+    sw mode access
+    sw access vlan 15
+
+    int f0/7
+    sw mode access
+    sw access vlan 20
+
+    
+! - ACL (in R2)
+    ip access-list extended FILTER
+    deny tcp host 192.168.10.5 host 192.168.100.6
+    deny tcp host 192.168.10.5 host 192.168.100.5
+    deny tcp host 192.168.15.5 host 192.168.100.6
+    deny tcp host 192.168.20.5 host 192.168.100.5
+    permit ip any any
+
+    int s0/0/0
+    ip access-group FILTER out
+! =========R3=========
+int g0/1
+ip nat inside
+int s0/3/0
+ip nat outside
+exit
+
+ip nat pool accounts-pool 125.1.1.8 125.1.1.11 netmask 255.255.255.224
+access-list 1 permit 192.168.80.0  0.0.0.255 
+ip nat inside source list 1 pool accounts-pool overload
