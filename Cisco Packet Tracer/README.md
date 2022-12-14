@@ -17,8 +17,8 @@
   - [Enabling Telnet/SSH on router](#enabling-telnetssh-on-router)
   - [Configuring VLANs](#configuring-vlans)
     - [Show VLAN configuration](#show-vlan-configuration)
-    - [Step 1: VLAN creation](#step-1-vlan-creation)
-    - [Step 2: VLAN port assignment](#step-2-vlan-port-assignment)
+    - [VLAN creation](#step-1-vlan-creation)
+    - [VLAN port assignment](#step-2-vlan-port-assignment)
     - [Configuring trunk VLAN](#configuring-trunk-vlan)
     - [Deleting VLAN](#deleting-vlan)
     - [Configuring router subinterface](#configuring-router-subinterface)
@@ -26,9 +26,20 @@
     - [Show NAT translations](#show-nat-translations)
     - [Steps to connect a network to the internet or to another network using router](#steps-to-connect-a-network-to-the-internet-or-to-another-network-using-router)
     - [Dynamic NAT examples](#dynamic-nat-examples)
-      - [Step 1: Configuring the inside and outside interfaces](#step-1-configuring-the-inside-and-outside-interfaces)
-      - [Step 2: Setting the NAT pool](#step-2-setting-the-nat-pool)
-
+    - [Static NAT examples](#static-nat-examples)
+    - [PAT examples](#pat-examples)
+  - [Configuring ACL](#configuring-acl)
+    - [Show ACL configuration](#show-acl-configuration)
+    - [Standard ACL examples](#standard-acl-examples)
+    - [Extended ACL examples](#extended-acl-examples)
+  - [Some important configuration steps](#some-important-configuration-steps)
+    - [Communication between devices under same switch](#communication-between-devices-under-same-switch)
+    - [Telnet configuration on switch](#telnet-configuration-on-switch)
+    - [Telnet configuration on router](#telnet-configuration-on-router)
+    - [Vlan configuration](#vlan-configuration)
+    - [Legacy inter-VLAN routing](#legacy-inter-vlan-routing)
+    - [Router on a stick inter-VLAN routing](#router-on-a-stick-inter-vlan-routing)
+    
 ## Basic Configuration
 
 ### Show configurations
@@ -261,7 +272,7 @@ Then reload
     (do this for all the PCs)
 ```
 
-### PAT (One to many) examples
+### PAT examples
 Everything is the same as Dynamic NAT except an "overload"
 ```ios
     int g0/0
@@ -329,7 +340,7 @@ Here is an example:
 
 <div align="right"><a href="#top">Back to top</a></div>
 
-### Extended ACL (source, destination) (100-199)
+### Extended ACL examples
 - Extended ACLs are used to specify both source and destination addresses.
 - 100-199 are extended ACLs.
 `placement:` closest to the source. That means, set the ACL on the interface that is closer to the source.
@@ -367,7 +378,7 @@ To clear the above FILTER:
 2. conf a vlan interface on the switch with an ip
 3. configure a telnet password (line vty 0 15)
 
-### Telnet communication on Router
+### Telnet configuration on Router
 ** Network part of ip should have to match **
 1. enable password
 2. configure ip address of the line that is connected to the switch/Device
