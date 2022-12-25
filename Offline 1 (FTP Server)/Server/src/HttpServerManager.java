@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.NoSuchFileException;
 import java.util.Date;
@@ -8,8 +7,15 @@ import java.util.Objects;
 
 public class HttpServerManager extends Thread {
     private final Socket socket;
-    public HttpServerManager(Socket socket) {
+    private final BufferedReader br;
+    private final PrintWriter pw;
+    private final DataOutputStream dos;
+    private final int chunkSize = 1024;
+    public HttpServerManager(Socket socket) throws IOException {
         this.socket = socket;
+        br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        pw = new PrintWriter(socket.getOutputStream());
+        dos = new DataOutputStream(socket.getOutputStream());
     }
 
     /**
@@ -17,6 +23,7 @@ public class HttpServerManager extends Thread {
      * in a list of links as a string.
      * @param path the path of the folder to be iterated through
      * @return a string of html content
+     * @throws NoSuchFileException if the path does not exist
      */
     private String generateFileNamesAsHtmlList(String path) throws NoSuchFileException {
         System.out.println("Requested path: " + path);
@@ -60,17 +67,29 @@ public class HttpServerManager extends Thread {
         return sb.toString();
     }
 
-    private String generateHtmlResponseHeader(String responseType, int contentLength) {
+    /**
+     * Returns the response header for a request.
+     * @param responseType the type of response. e.g: 200 OK, 404 Not Found
+     * @param contentLength the length of the html content
+     * @return a string of the response header
+     */
+    private String generateHtmlResponseHeader(String responseType, String contentType, int contentLength) {
         String responseHeader = "HTTP/1.1 " + responseType + "\r\n" +
                 "Server: Java HTTP Server: 1.1\r\n" +
                 "Date: " + new Date() + "\r\n" +
-                "Content-Type: text/html\r\n" +
+                "Content-Type: " + contentType + "\r\n" +
                 "Content-Length: " + contentLength + "\r\n" +
                 "\r\n";
         return responseHeader;
     }
 
-    private String generateHtml(String path) throws NoSuchFileException {
+    /**
+     * Generates an HTML page content for a specified path.
+     * @param path the path of the folder to be iterated through
+     * @return a string of html content
+     * @throws NoSuchFileException if the path does not exist
+     */
+    private String generateHtmlContent(String path) throws NoSuchFileException {
         File file = new File("index.html");
         StringBuilder html = new StringBuilder();
 
@@ -93,37 +112,82 @@ public class HttpServerManager extends Thread {
         return html.toString();
     }
 
-    private String generateHtmlResponse(String request) {
+    private String fileNameToMime(String fileName) {
+        String extension = fileName.substring(fileName.lastIndexOf(".") + 1);
+        switch (extension) {
+            case "txt":
+            case "docx":
+                return "text/plain";
+            case "pdf":
+                return "application/pdf";
+            case "png":
+            case "bpm":
+            case "jpg":
+            case "jpeg":
+                return "image/jpeg";
+            default:
+                return "text/html";
+        }
+    }
+
+    /**
+     * Generates a response for a GET request.
+     * @param request the request string
+     */
+    private void handleGetRequest(String request) {
         StringBuilder htmlResponse = new StringBuilder();
         if(request.startsWith("GET")) {
+            System.out.println("GET request : " + request);
             String path = request.split(" ")[1];
-            String html;
             try {
-                html = generateHtml(path);
-                htmlResponse.append(generateHtmlResponseHeader("200 OK", html.length()));
-                htmlResponse.append(html);
-            } catch (NoSuchFileException e) {
-                htmlResponse.append(generateHtmlResponseHeader("404 Not Found", 0));
-            }
+                if(path.endsWith(".pdf") || path.endsWith(".txt") || path.endsWith(".docx") ||path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg")) {
+                    File file = new File(path.substring(1));
+                    if(!file.exists()) {
+                        throw new NoSuchFileException("No such file or directory");
+                    }
 
+                    FileInputStream fis = new FileInputStream(file);
+
+                    htmlResponse.append(generateHtmlResponseHeader("200 OK", fileNameToMime(path), (int) file.length()));
+                    pw.write(htmlResponse.toString());
+                    pw.flush();
+                    byte[] buffer = new byte[chunkSize];
+                    int bytes;
+                    while ((bytes = fis.read(buffer)) != -1) {
+                        dos.write(buffer, 0, bytes);
+                        dos.flush();
+                    }
+                } else {
+                    String html;
+
+                    html = generateHtmlContent(path);
+                    htmlResponse.append(generateHtmlResponseHeader("200 OK", "text/html", html.length()));
+                    htmlResponse.append(html);
+                    pw.write(htmlResponse.toString());
+                    pw.flush();
+                }
+            } catch (NoSuchFileException | FileNotFoundException e) {
+                htmlResponse.append(generateHtmlResponseHeader("404 Not Found", "", 0));
+            } catch (Exception e) {
+                System.out.println(e);
+            }
         }
-        return htmlResponse.toString();
+    }
+
+    private void handleRequest(String request) {
+        if(request.startsWith("GET")) {
+            handleGetRequest(request);
+        }
     }
 
     @Override
     public void run() {
         try {
             while (true) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter pr = new PrintWriter(socket.getOutputStream());
-                String input = in.readLine();
-
-                if (input == null) break;
-                System.out.println("input : " + input);
+                String input = br.readLine();
+                if (input == null) continue;
                 if (input.length() > 0) {
-                    pr.write(generateHtmlResponse(input));
-                    System.out.println("Response sent");
-                    pr.flush();
+                    handleRequest(input);
                 }
             }
         } catch (IOException e) {
