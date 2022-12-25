@@ -3,9 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <title>FTP Server</title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        .header {
+            text-align: center;
+        }
+        body {
+            display: block;
+            width: 50%;
+            margin: auto;
+        }
+        .directory {
+            text-align: center;
+            font-weight: bold;
+            display: block;
+            background-color: #f4c095;
+            padding: .5em;
+            border-radius: .5em;
+        }
+        ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        li> a {
+            display: block;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+            padding: 1em;
+            border-radius: 1em;
+            background-color: #167f91;
+            margin: .5em;
+        }
+
+        .folder {
+             font-weight:bold;
+             font-style:italic;
+             background-color: #054954;
+         }
+
+        li>a:hover {
+            background-color: #299eb6;
+        }
+
+        .folder:hover {
+            background-color: #0e6277;
+        }
+
+        .empty {
+            display: block;
+            padding: 1em;
+            border-radius: 1em;
+            background-color: #ee2e31;
+            margin: .5em;
+        }
+    </style>
 </head>
 <body>
-    <h1>FTP Server</h1><br>
-    <p style="color: midnightblue; font-weight: bold">Files</p>
-</body>
-</html>
+    <div class="header"><h1>FTP Server</h1></div>

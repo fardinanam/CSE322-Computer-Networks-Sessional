@@ -2,7 +2,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 
 public class HttpServer {
-    private static int PORT = 5087;
+    private static final int PORT = 5087;
     private static int totalClientCount = 0;
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
