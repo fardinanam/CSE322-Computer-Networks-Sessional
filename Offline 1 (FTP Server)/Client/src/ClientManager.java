@@ -31,12 +31,11 @@ public class ClientManager extends Thread {
             String response = br.readLine();
             System.out.println(response);
             if(response.startsWith("400")) {
-                System.out.println(response);
                 return;
             }
             response = br.readLine();
             System.out.println(response);
-            if(response.startsWith("400")) {
+            if(response.startsWith("400") || response.startsWith("500")) {
                 // command format was invalid
                 System.out.println("Invalid request");
             } else {
@@ -56,12 +55,13 @@ public class ClientManager extends Thread {
 
                     // file upload starting
                     FileInputStream fis = new FileInputStream(file);
+                    System.out.println("Sending " + file.length() + " bytes of data");
                     dos.writeLong(file.length());
                     dos.flush();
                     int bytes = 0;
                     byte[] buffer = new byte[CHUNKSIZE];
 
-                    while ((bytes = fis.read()) != -1) {
+                    while ((bytes = fis.read(buffer)) != -1) {
                         dos.write(buffer, 0, bytes);
                         dos.flush();
                     }
@@ -72,11 +72,15 @@ public class ClientManager extends Thread {
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
+
             try {
+                System.out.println(br.readLine());
                 socket.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
+
+
     }
 }

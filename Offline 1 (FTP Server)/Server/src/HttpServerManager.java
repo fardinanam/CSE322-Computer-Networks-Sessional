@@ -10,13 +10,35 @@ public class HttpServerManager extends Thread {
     private final PrintWriter pw;
     private final DataOutputStream dos;
     private final DataInputStream dis;
+    private final FileWriter logFile;
     private final int CHUNKSIZE = 4096;
+
     public HttpServerManager(Socket socket) throws IOException {
         this.socket = socket;
         br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         pw = new PrintWriter(socket.getOutputStream(), true);
         dos = new DataOutputStream(socket.getOutputStream());
         dis = new DataInputStream(socket.getInputStream());
+        // create a new log file
+        logFile = new FileWriter("log.txt", true);
+    }
+
+    private void log(String message) {
+        try {
+            logFile.write(message + "\n");
+        } catch (IOException e) {
+            System.out.println("Error writing to log file");
+        }
+    }
+    private void printResponse(String response) {
+        pw.println(response);
+        pw.flush();
+    }
+
+    private void writeResponseAndLog(String response) {
+        log("-----------------------------\nResponse: " + response);
+        pw.write(response);
+        pw.flush();
     }
 
     /**
@@ -28,8 +50,12 @@ public class HttpServerManager extends Thread {
      */
     private String generateFileNamesAsHtmlList(String path) throws FileNotFoundException {
         System.out.println("Requested path: " + path);
+        StringBuilder htmlContent = new StringBuilder();
+
         if(path.equals("/")) {
-            return "<ul><li><a class=\"folder\" href=\"root\">root</a></li></ul>";
+            htmlContent.append("<ul><li><a class=\"folder\" href=\"root\">root</a></li></ul>");
+            htmlContent.append("<ul><li><a class=\"folder\" href=\"uploaded\">uploaded</a></li></ul>");
+            return htmlContent.toString();
         }
         File folder = new File(path.substring(1));
 
@@ -40,32 +66,32 @@ public class HttpServerManager extends Thread {
 
         File[] listOfFiles = folder.listFiles();
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("<p class=\"directory\">").append(path).append("</p>\r\n");
-        System.out.println("listOfFiles: " + listOfFiles.toString());
+
+        htmlContent.append("<p class=\"directory\">").append(path).append("</p>\r\n");
+
         if(listOfFiles == null) {
             System.out.println("listOfFiles is null");
-            sb.append("<p class=\"empty\">Empty folder</p>");
-            return sb.toString();
+            htmlContent.append("<p class=\"empty\">Empty folder</p>");
+            return htmlContent.toString();
         }
 
-        sb.append("<ul>\r\n");
+        htmlContent.append("<ul>\r\n");
 
         for (File file : listOfFiles) {
             if (file.isFile()) {
-                sb.append("<li>\r\n");
-                sb.append("<a href=\"").append(path).append("/").append(file.getName()).append("\">");
-                sb.append(file.getName());
-                sb.append("</a>\r\n</li>\r\n");
+                htmlContent.append("<li>\r\n");
+                htmlContent.append("<a href=\"").append(path).append("/").append(file.getName()).append("\">");
+                htmlContent.append(file.getName());
+                htmlContent.append("</a>\r\n</li>\r\n");
             } else if (file.isDirectory()) {
-                sb.append("<li >\r\n");
-                sb.append("<a class=\"folder\" href=\"").append(path).append("/").append(file.getName()).append("\">");
-                sb.append(file.getName());
-                sb.append("</a>\r\n</li>\r\n");
+                htmlContent.append("<li >\r\n");
+                htmlContent.append("<a class=\"folder\" href=\"").append(path).append("/").append(file.getName()).append("\">");
+                htmlContent.append(file.getName());
+                htmlContent.append("</a>\r\n</li>\r\n");
             }
         }
-        sb.append("</ul>\r\n");
-        return sb.toString();
+        htmlContent.append("</ul>\r\n");
+        return htmlContent.toString();
     }
 
     /**
@@ -154,8 +180,7 @@ public class HttpServerManager extends Thread {
 
                     htmlResponse.append(generateHtmlResponseHeader("200 OK",
                             fileNameToMime(path), (int) file.length()));
-                    pw.write(htmlResponse.toString());
-                    pw.flush();
+                    writeResponseAndLog(htmlResponse.toString());
                     byte[] buffer = new byte[CHUNKSIZE];
                     int bytes;
                     while ((bytes = fis.read(buffer)) != -1) {
@@ -167,19 +192,24 @@ public class HttpServerManager extends Thread {
                     html = generateHtmlContent(path);
                     htmlResponse.append(generateHtmlResponseHeader("200 OK", "text/html", html.length()));
                     htmlResponse.append(html);
-                    pw.write(htmlResponse.toString());
-                    pw.flush();
+                    writeResponseAndLog(htmlResponse.toString());
                 }
             } catch (FileNotFoundException e) {
                 htmlResponse.append(generateHtmlResponseHeader("404 Not Found", "", 0));
-                pw.write(htmlResponse.toString());
-                pw.flush();
+                writeResponseAndLog(htmlResponse.toString());
             } catch (Exception e) {
                 System.out.println(e);
             }
         }
     }
 
+    /**
+     * Communicates with the client while uploading a file. Firstly it checks the command format of the
+     * request. If the request is valid, it sends "start" to the client. Otherwise, sends a "400 Bad Request"
+     * error message. Then it waits for an acknowledgement from the client. If the client sends "start", it
+     * starts to receive the file. Otherwise, it ends the connection.
+     * @param request the request string
+     */
     private void handleUploadRequest(String request) {
         // command received
         String[] requestSegments = request.split(" ");
@@ -187,19 +217,28 @@ public class HttpServerManager extends Thread {
 
         if(requestSegments.length > 2) {
             // invalid command format
-            pw.println("400 Bad Request");
-            pw.flush();
+            printResponse("400 Bad Request");
             return;
         }
         if(fileName.toLowerCase().endsWith(".txt") || fileName.toLowerCase().endsWith(".docx")
                 ||fileName.toLowerCase().endsWith(".jpg")  || fileName.toLowerCase().endsWith(".png")
                 || fileName.toLowerCase().endsWith(".jpeg") || fileName.toLowerCase().endsWith(".mp4")) {
+            // Check if the "uploaded" folder exists. If not, create it.
+            File uploadedFolder = new File("uploaded");
+            if(!uploadedFolder.exists()) {
+                if(!uploadedFolder.mkdir()) {
+                    System.out.println("Failed to create the uploaded folder");
+                    printResponse("500 Internal Server Error");
+                    return;
+                }
+            }
+
             // A valid request and command format
             System.out.println("starting to handle upload");
-            pw.println("start");
-            pw.flush();
+            printResponse("start");
 
             FileOutputStream fos = null;
+            long size = -1;
             try {
                 // expecting a message from the client
                 if(!br.readLine().equals("start")) {
@@ -208,48 +247,50 @@ public class HttpServerManager extends Thread {
                     return;
                 }
 
-                // file upload stating
+                // Starting to upload file
                 int bytes = 0;
-                fos = new FileOutputStream("upload/" + fileName);
-                long size = dis.readLong();
+                fos = new FileOutputStream("uploaded/" + fileName);
+                size = dis.readLong();
+                System.out.println("Receiving " + size + " bytes of data");
                 byte[] buffer = new byte[CHUNKSIZE];
                 while (size > 0 && (bytes = dis.read(buffer, 0, (int) Math.min(buffer.length, size))) != -1) {
-                    System.out.println("Bytes: " + bytes);
+//                    System.out.println("Bytes: " + bytes);
                     fos.write(buffer, 0, bytes);
                     size -= bytes;
                 }
             } catch (IOException e) {
                 System.out.println("Could not complete upload");
                 e.printStackTrace();
-//                pw.write("Could not complete upload");
-//                pw.flush();
             } finally {
+                if(size != 0) {
+                    printResponse("417 upload failed");
+                } else {
+                    printResponse("200 upload successful");
+                }
                 try {
-                    if (fos != null) fos.close();
+                    if (fos != null) {
+                        fos.close();
+                        System.out.println("File closed");
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         } else {
             // invalid file type
-            pw.println("400 Bad Request");
-            pw.flush();
+            printResponse("400 Bad Request");
         }
-
-        pw.println("408 close");
-        pw.flush();
     }
     private void handleRequest(String request) {
+        log("===============================\nRequest: " + request);
         if(request.startsWith("GET")) {
             handleGetRequest(request);
         } else if(request.startsWith("UPLOAD")) {
-            pw.println("Command received");
-            pw.flush();
+            printResponse("Command received");
             handleUploadRequest(request);
         } else {
             System.out.println("Invalid request");
-            pw.println("400 Invalid command");
-            pw.flush();
+            printResponse("400 Invalid command");
         }
     }
 
@@ -273,6 +314,12 @@ public class HttpServerManager extends Thread {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        }
+
+        try {
+            logFile.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

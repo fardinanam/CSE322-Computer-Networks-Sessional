@@ -3,3 +3,4 @@
 *.iml
 *.exe
 *.class
+out/
