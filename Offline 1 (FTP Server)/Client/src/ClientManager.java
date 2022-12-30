@@ -41,8 +41,8 @@ public class ClientManager extends Thread {
             } else {
                 // valid command format acknowledged from server
                 System.out.println("Server received and accepted upload request");
-                String fileName = request.split(" ")[1];
-                File file = new File("files/" + fileName);
+                String fileName = request.split(" ", 2)[1];
+                File file = new File(fileName);
 
                 // server is expecting a string
                 if(!file.exists()) {
@@ -60,12 +60,19 @@ public class ClientManager extends Thread {
                     dos.flush();
                     int bytes = 0;
                     byte[] buffer = new byte[CHUNKSIZE];
-
+                    long countSentBytes = 0;
+                    System.out.println();
                     while ((bytes = fis.read(buffer)) != -1) {
                         dos.write(buffer, 0, bytes);
                         dos.flush();
+                        countSentBytes += bytes;
+                        System.out.print("\r");
+                        for(int i = 0; i < (countSentBytes/file.length())*50; i++) {
+                            System.out.print("=");
+                        }
+                        System.out.print(countSentBytes/file.length()*100 + "%");
                     }
-                    System.out.println("File sent");
+                    System.out.println("\nFile sent");
                     fis.close();
                 }
             }

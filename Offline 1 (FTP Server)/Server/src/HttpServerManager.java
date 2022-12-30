@@ -80,7 +80,7 @@ public class HttpServerManager extends Thread {
         for (File file : listOfFiles) {
             if (file.isFile()) {
                 htmlContent.append("<li>\r\n");
-                htmlContent.append("<a href=\"").append(path).append("/").append(file.getName()).append("\">");
+                htmlContent.append("<a href=\"").append(path).append("/").append(file.getName()).append("\" target=\"blank\">");
                 htmlContent.append(file.getName());
                 htmlContent.append("</a>\r\n</li>\r\n");
             } else if (file.isDirectory()) {
@@ -140,7 +140,7 @@ public class HttpServerManager extends Thread {
     }
 
     private String fileNameToMime(String fileName) {
-        String extension = fileName.substring(fileName.lastIndexOf(".") + 1);
+        String extension = fileName.toLowerCase().substring(fileName.lastIndexOf(".") + 1);
         switch (extension) {
             case "txt":
             case "docx":
@@ -169,8 +169,9 @@ public class HttpServerManager extends Thread {
             System.out.println("GET request : " + request);
             String path = request.split(" ")[1];
             try {
-                if(path.endsWith(".pdf") || path.endsWith(".txt") || path.endsWith(".docx") ||path.endsWith(".jpg")
-                        || path.endsWith(".png") || path.endsWith(".jpeg") || path.endsWith(".mp4")) {
+                if(path.toLowerCase().endsWith(".pdf") || path.toLowerCase().endsWith(".txt") || path.toLowerCase().endsWith(".docx")
+                        ||path.toLowerCase().endsWith(".jpg") || path.toLowerCase().endsWith(".png") || path.toLowerCase().endsWith(".jpeg")
+                        || path.toLowerCase().endsWith(".mp4")) {
                     File file = new File(path.substring(1));
                     if(!file.exists()) {
                         throw new NoSuchFileException("No such file or directory");
@@ -212,7 +213,7 @@ public class HttpServerManager extends Thread {
      */
     private void handleUploadRequest(String request) {
         // command received
-        String[] requestSegments = request.split(" ");
+        String[] requestSegments = request.split(" ", 2);
         String fileName = requestSegments[1];
 
         if(requestSegments.length > 2) {
@@ -249,12 +250,12 @@ public class HttpServerManager extends Thread {
 
                 // Starting to upload file
                 int bytes = 0;
+                fileName = fileName.substring(fileName.lastIndexOf("/") + 1);
                 fos = new FileOutputStream("uploaded/" + fileName);
                 size = dis.readLong();
                 System.out.println("Receiving " + size + " bytes of data");
                 byte[] buffer = new byte[CHUNKSIZE];
                 while (size > 0 && (bytes = dis.read(buffer, 0, (int) Math.min(buffer.length, size))) != -1) {
-//                    System.out.println("Bytes: " + bytes);
                     fos.write(buffer, 0, bytes);
                     size -= bytes;
                 }
