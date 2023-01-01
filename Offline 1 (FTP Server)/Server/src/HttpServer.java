@@ -16,7 +16,7 @@ public class HttpServer {
             System.out.println("Waiting for clients to connect...");
             while (true) {
                 Thread httpServerManager = new HttpServerManager(serverSocket.accept());
-                System.out.println("Connected to " + ++totalClientCount + " clients");
+                System.out.println("Client: " + ++totalClientCount);
                 httpServerManager.start();
             }
         } catch (IOException e) {

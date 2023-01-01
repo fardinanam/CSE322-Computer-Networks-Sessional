@@ -11,6 +11,7 @@ public class Client {
                 request = scanner.nextLine();
 
                 Thread clientManager = new ClientManager(request);
+                clientManager.start();
             }
         } catch (IOException e) {
             e.printStackTrace();

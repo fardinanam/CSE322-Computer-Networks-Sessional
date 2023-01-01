@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.Socket;
-import java.nio.file.NoSuchFileException;
 
 public class ClientManager extends Thread {
     private final Socket socket;
@@ -9,7 +8,7 @@ public class ClientManager extends Thread {
     private final DataOutputStream dos;
     private final int PORT = 5087;
     private final String SERVERIP = "localhost";
-    private final int CHUNKSIZE = 4096;
+    private final int CHUNK_SIZE = 4096;
     private final String request;
 
     public ClientManager(String request) throws IOException {
@@ -18,7 +17,6 @@ public class ClientManager extends Thread {
         pr = new PrintWriter(socket.getOutputStream(), true);
         dos = new DataOutputStream(socket.getOutputStream());
         this.request = request;
-        start();
     }
 
     @Override
@@ -59,18 +57,11 @@ public class ClientManager extends Thread {
                     dos.writeLong(file.length());
                     dos.flush();
                     int bytes = 0;
-                    byte[] buffer = new byte[CHUNKSIZE];
-                    long countSentBytes = 0;
+                    byte[] buffer = new byte[CHUNK_SIZE];
                     System.out.println();
                     while ((bytes = fis.read(buffer)) != -1) {
                         dos.write(buffer, 0, bytes);
                         dos.flush();
-                        countSentBytes += bytes;
-                        System.out.print("\r");
-                        for(int i = 0; i < (countSentBytes/file.length())*50; i++) {
-                            System.out.print("=");
-                        }
-                        System.out.print(countSentBytes/file.length()*100 + "%");
                     }
                     System.out.println("\nFile sent");
                     fis.close();

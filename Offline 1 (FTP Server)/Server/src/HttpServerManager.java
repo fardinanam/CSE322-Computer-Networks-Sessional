@@ -11,7 +11,7 @@ public class HttpServerManager extends Thread {
     private final DataOutputStream dos;
     private final DataInputStream dis;
     private final FileWriter logFile;
-    private final int CHUNKSIZE = 4096;
+    private final int CHUNK_SIZE = 4096;
 
     public HttpServerManager(Socket socket) throws IOException {
         this.socket = socket;
@@ -154,8 +154,32 @@ public class HttpServerManager extends Thread {
                 return "image/jpeg";
             case "mp4":
                 return "video/mp4";
+            case "mov":
+                return "video/quicktime";
             default:
                 return "text/html";
+        }
+    }
+
+    private boolean isValidFileType(String fileName) {
+        if(!fileName.contains(".")) {
+            return false;
+        }
+
+        String extension = fileName.toLowerCase().substring(fileName.lastIndexOf(".") + 1);
+        switch (extension) {
+            case "txt":
+            case "docx":
+            case "pdf":
+            case "png":
+            case "bpm":
+            case "jpg":
+            case "jpeg":
+            case "mp4":
+            case "mov":
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -169,9 +193,7 @@ public class HttpServerManager extends Thread {
             System.out.println("GET request : " + request);
             String path = request.split(" ")[1];
             try {
-                if(path.toLowerCase().endsWith(".pdf") || path.toLowerCase().endsWith(".txt") || path.toLowerCase().endsWith(".docx")
-                        ||path.toLowerCase().endsWith(".jpg") || path.toLowerCase().endsWith(".png") || path.toLowerCase().endsWith(".jpeg")
-                        || path.toLowerCase().endsWith(".mp4")) {
+                if(isValidFileType(path)) {
                     File file = new File(path.substring(1));
                     if(!file.exists()) {
                         throw new NoSuchFileException("No such file or directory");
@@ -182,7 +204,7 @@ public class HttpServerManager extends Thread {
                     htmlResponse.append(generateHtmlResponseHeader("200 OK",
                             fileNameToMime(path), (int) file.length()));
                     writeResponseAndLog(htmlResponse.toString());
-                    byte[] buffer = new byte[CHUNKSIZE];
+                    byte[] buffer = new byte[CHUNK_SIZE];
                     int bytes;
                     while ((bytes = fis.read(buffer)) != -1) {
                         dos.write(buffer, 0, bytes);
@@ -198,9 +220,7 @@ public class HttpServerManager extends Thread {
             } catch (FileNotFoundException e) {
                 htmlResponse.append(generateHtmlResponseHeader("404 Not Found", "", 0));
                 writeResponseAndLog(htmlResponse.toString());
-            } catch (Exception e) {
-                System.out.println(e);
-            }
+            } catch (Exception e) {}
         }
     }
 
@@ -221,9 +241,8 @@ public class HttpServerManager extends Thread {
             printResponse("400 Bad Request");
             return;
         }
-        if(fileName.toLowerCase().endsWith(".txt") || fileName.toLowerCase().endsWith(".docx")
-                ||fileName.toLowerCase().endsWith(".jpg")  || fileName.toLowerCase().endsWith(".png")
-                || fileName.toLowerCase().endsWith(".jpeg") || fileName.toLowerCase().endsWith(".mp4")) {
+
+        if(isValidFileType(fileName)) {
             // Check if the "uploaded" folder exists. If not, create it.
             File uploadedFolder = new File("uploaded");
             if(!uploadedFolder.exists()) {
@@ -254,7 +273,7 @@ public class HttpServerManager extends Thread {
                 fos = new FileOutputStream("uploaded/" + fileName);
                 size = dis.readLong();
                 System.out.println("Receiving " + size + " bytes of data");
-                byte[] buffer = new byte[CHUNKSIZE];
+                byte[] buffer = new byte[CHUNK_SIZE];
                 while (size > 0 && (bytes = dis.read(buffer, 0, (int) Math.min(buffer.length, size))) != -1) {
                     fos.write(buffer, 0, bytes);
                     size -= bytes;
@@ -298,18 +317,19 @@ public class HttpServerManager extends Thread {
     @Override
     public void run() {
         try {
-            while (true) {
+//            while (true) {
                 String input = br.readLine();
-                System.out.println(input);
-                if (input == null) break;
-                if (input.length() > 0) {
+//                System.out.println(input);
+//                if (input == null) break;
+                if (input != null && input.length() > 0) {
                     handleRequest(input);
                 }
-            }
+//            }
         } catch (IOException e) {
-            System.out.println(e);
+//            System.out.println(e);
+            e.printStackTrace();
         } finally {
-            System.out.println("One client left.");
+//            System.out.println("One client left.");
             try {
                 socket.close();
             } catch (IOException e) {
