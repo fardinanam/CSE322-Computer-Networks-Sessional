@@ -1,21 +1,25 @@
 import matplotlib.pyplot as plt
+import sys
 
-def plotGraph(xs : list, ys : list, xLabel : str, yLabel : str, title : str, fileName : str):
+def plotGraph(xs, ys, xLabel : str, yLabel : str, title : str, fileName : str):
     fig, ax = plt.subplots()
-    # ax.plot(xs, ys, color="blue", linestyle='dashed')
+    ax.plot(xs, ys, color="blue", linestyle='dashed')
     ax.scatter(xs, ys, color="red")
     ax.grid(True)
+
     # give plot a title
     ax.set_title(title)
+
     # make axis labels
     ax.set_xlabel(xLabel)
     ax.set_ylabel(yLabel)
-    ax.axhline(y=0, color='k')
-    ax.axvline(x=0, color='k')
+    
     # save the plot as a file
     fig.savefig('graphs/'+fileName)
+    
     # close the plot file
     plt.close(fig)
+    
 
 def makeTitleAndCreateGraphs(varyingParam : str, xs : list, throughputs : list, avgDelays : list, deliveryRatios : list, dropRatios):
     xLabel = varyingParam
@@ -39,6 +43,10 @@ def makeTitleAndCreateGraphs(varyingParam : str, xs : list, throughputs : list, 
 
 
 if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python3 graphGenerator.py <input_file>")
+        exit(1)
+
     varyingParamIdx = -1 # area = 1, no. of nodes = 2, no. of flows = 3
     areaSizes = []
     nodes = []
@@ -49,7 +57,7 @@ if __name__ == "__main__":
     deliveryRatio = []
     dropRatio = []
 
-    with open('results.txt', 'r') as inputFile:
+    with open(sys.argv[1], 'r') as inputFile:
         for line in inputFile:
             if line.startswith('='):
                 varyingParamIdx += 1
@@ -69,7 +77,7 @@ if __name__ == "__main__":
                     varyingParam = 'Number of Flows'
                     xs = flows
                 
-                print(f"Varying param: {varyingParam}")
+                # print(f"Varying param: {varyingParam}")
                 makeTitleAndCreateGraphs(varyingParam, xs, throughput, avgDelay, deliveryRatio, dropRatio)
                 
                 throughput = []
@@ -91,7 +99,7 @@ if __name__ == "__main__":
                 if len(metrices) < 4:
                     continue
 
-                throughput.append(metrices[0])
-                avgDelay.append(metrices[1])
-                deliveryRatio.append(metrices[2])
-                dropRatio.append(metrices[3])
+                throughput.append(float(metrices[0]))
+                avgDelay.append(float(metrices[1]))
+                deliveryRatio.append(float(metrices[2]))
+                dropRatio.append(float(metrices[3]))

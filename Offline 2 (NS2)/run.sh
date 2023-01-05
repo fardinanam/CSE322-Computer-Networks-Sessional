@@ -12,7 +12,7 @@ nsFile="wireless-random.tcl"
 awkFile="parse.awk"
 
 # Output file
-resultFile="results.txt"
+resultFile="results.out"
 
 # echo "Area Size,Number of Nodes, Number of Flows" > $resultFile
 # Initialize the output file
@@ -57,5 +57,6 @@ for i in {1..5}; do
     awk -f $awkFile < trace.tr >> $resultFile
 done
 
+echo "=========================" >> $resultFile
 # Generate the graphs using python script
-python3 graphGenerator.py
+python3 graphGenerator.py $resultFile

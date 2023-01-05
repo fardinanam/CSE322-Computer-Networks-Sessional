@@ -10,3 +10,7 @@
 # NS2
 *.tr
 *.nam
+
+# output files
+*.out
+tempCodeRunnerFile.*
