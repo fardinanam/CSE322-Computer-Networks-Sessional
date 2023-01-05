@@ -7,16 +7,23 @@ public class ClientManager extends Thread {
     private final PrintWriter pr;
     private final DataOutputStream dos;
     private final int PORT = 5087;
-    private final String SERVERIP = "localhost";
+    private final String SERVER_IP = "localhost";
     private final int CHUNK_SIZE = 4096;
     private final String request;
+    private final boolean DEBUG = false;
 
     public ClientManager(String request) throws IOException {
-        socket = new Socket(SERVERIP, PORT);
+        socket = new Socket(SERVER_IP, PORT);
         br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         pr = new PrintWriter(socket.getOutputStream(), true);
         dos = new DataOutputStream(socket.getOutputStream());
         this.request = request;
+    }
+
+    private void logResponse(String response) {
+        if (DEBUG) {
+            System.out.println("Server says: " + response);
+        }
     }
 
     @Override
@@ -27,15 +34,15 @@ public class ClientManager extends Thread {
 
         try {
             String response = br.readLine();
-            System.out.println(response);
+            logResponse(response);
             if(response.startsWith("400")) {
                 return;
             }
             response = br.readLine();
-            System.out.println(response);
+            logResponse(response);
             if(response.startsWith("400") || response.startsWith("500")) {
                 // command format was invalid
-                System.out.println("Invalid request");
+                logResponse(response);
             } else {
                 // valid command format acknowledged from server
                 System.out.println("Server received and accepted upload request");
@@ -68,17 +75,25 @@ public class ClientManager extends Thread {
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            if (DEBUG) {
+                e.printStackTrace();
+            }
         } finally {
-
             try {
                 System.out.println(br.readLine());
-                socket.close();
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                if (DEBUG) {
+                    e.printStackTrace();
+                }
             }
         }
 
-
+        try {
+            br.close();
+            pr.close();
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

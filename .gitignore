@@ -1,6 +1,12 @@
+# editors
 .idea/
 .vscode/
 *.iml
+
+# java
 *.exe
 *.class
-out/
+
+# NS2
+*.tr
+*.nam

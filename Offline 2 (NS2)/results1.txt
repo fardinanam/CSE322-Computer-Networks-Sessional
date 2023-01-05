@@ -1,0 +1,96 @@
+=================
+varying area size
+---------------
+Area Size: 250
+Throughput: 605247 bits/sec
+Average Delay: 0.312103 sec
+Delivery Ratio: 0.628403
+Drop Ratio: 0.372746
+---------------
+Area Size: 500
+Throughput: 449386 bits/sec
+Average Delay: 0.394523 sec
+Delivery Ratio: 0.47258
+Drop Ratio: 0.530306
+---------------
+Area Size: 750
+Throughput: 269935 bits/sec
+Average Delay: 0.565925 sec
+Delivery Ratio: 0.285621
+Drop Ratio: 0.724219
+---------------
+Area Size: 1000
+Throughput: 193119 bits/sec
+Average Delay: 0.738428 sec
+Delivery Ratio: 0.200553
+Drop Ratio: 0.810296
+---------------
+Area Size: 1250
+Throughput: 122831 bits/sec
+Average Delay: 0.491126 sec
+Delivery Ratio: 0.129235
+Drop Ratio: 0.875205
+=======================
+varying number of nodes
+---------------------
+Number of Nodes: 20
+Throughput: 419537 bits/sec
+Average Delay: 0.43611 sec
+Delivery Ratio: 0.447147
+Drop Ratio: 0.553377
+---------------------
+Number of Nodes: 40
+Throughput: 314993 bits/sec
+Average Delay: 0.563029 sec
+Delivery Ratio: 0.331194
+Drop Ratio: 0.671089
+---------------------
+Number of Nodes: 60
+Throughput: 334925 bits/sec
+Average Delay: 0.477063 sec
+Delivery Ratio: 0.34885
+Drop Ratio: 0.659257
+---------------------
+Number of Nodes: 80
+Throughput: 379299 bits/sec
+Average Delay: 0.447509 sec
+Delivery Ratio: 0.397416
+Drop Ratio: 0.614559
+---------------------
+Number of Nodes: 100
+Throughput: 477547 bits/sec
+Average Delay: 0.374128 sec
+Delivery Ratio: 0.514203
+Drop Ratio: 0.492105
+=========================
+varying number of flows
+---------------------
+Number of Flows: 10
+Throughput: 423831 bits/sec
+Average Delay: 0.157568 sec
+Delivery Ratio: 0.863246
+Drop Ratio: 0.137672
+---------------------
+Number of Flows: 20
+Throughput: 447100 bits/sec
+Average Delay: 0.387303 sec
+Delivery Ratio: 0.472365
+Drop Ratio: 0.533607
+---------------------
+Number of Flows: 30
+Throughput: 469818 bits/sec
+Average Delay: 0.400712 sec
+Delivery Ratio: 0.326957
+Drop Ratio: 0.679258
+---------------------
+Number of Flows: 40
+Throughput: 422712 bits/sec
+Average Delay: 0.44569 sec
+Delivery Ratio: 0.224468
+Drop Ratio: 0.781623
+---------------------
+Number of Flows: 50
+Throughput: 527622 bits/sec
+Average Delay: 0.362242 sec
+Delivery Ratio: 0.220431
+Drop Ratio: 0.782102

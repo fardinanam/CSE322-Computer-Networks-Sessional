@@ -12,6 +12,7 @@ public class HttpServerManager extends Thread {
     private final DataInputStream dis;
     private final FileWriter logFile;
     private final int CHUNK_SIZE = 4096;
+    private final boolean DEBUG = false;
 
     public HttpServerManager(Socket socket) throws IOException {
         this.socket = socket;
@@ -114,7 +115,7 @@ public class HttpServerManager extends Thread {
      * Generates an HTML page content for a specified path.
      * @param path the path of the folder to be iterated through
      * @return a string of html content
-     * @throws NoSuchFileException if the path does not exist
+     * @throws FileNotFoundException if the path does not exist
      */
     private String generateHtmlContent(String path) throws FileNotFoundException {
         File file = new File("index.html");
@@ -131,7 +132,9 @@ public class HttpServerManager extends Thread {
                 html.append(line).append("\r\n");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            if(DEBUG) {
+                e.printStackTrace();
+            }
         }
 
         html.append(generateFileNamesAsHtmlList(path));
@@ -220,7 +223,11 @@ public class HttpServerManager extends Thread {
             } catch (FileNotFoundException e) {
                 htmlResponse.append(generateHtmlResponseHeader("404 Not Found", "", 0));
                 writeResponseAndLog(htmlResponse.toString());
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                if(DEBUG) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -234,13 +241,14 @@ public class HttpServerManager extends Thread {
     private void handleUploadRequest(String request) {
         // command received
         String[] requestSegments = request.split(" ", 2);
-        String fileName = requestSegments[1];
 
-        if(requestSegments.length > 2) {
+        if(requestSegments.length != 2) {
             // invalid command format
             printResponse("400 Bad Request");
             return;
         }
+
+        String fileName = requestSegments[1];
 
         if(isValidFileType(fileName)) {
             // Check if the "uploaded" folder exists. If not, create it.
@@ -280,7 +288,9 @@ public class HttpServerManager extends Thread {
                 }
             } catch (IOException e) {
                 System.out.println("Could not complete upload");
-                e.printStackTrace();
+                if(DEBUG) {
+                    e.printStackTrace();
+                }
             } finally {
                 if(size != 0) {
                     printResponse("417 upload failed");
@@ -293,7 +303,9 @@ public class HttpServerManager extends Thread {
                         System.out.println("File closed");
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    if(DEBUG) {
+                        e.printStackTrace();
+                    }
                 }
             }
         } else {
@@ -317,30 +329,35 @@ public class HttpServerManager extends Thread {
     @Override
     public void run() {
         try {
-//            while (true) {
-                String input = br.readLine();
-//                System.out.println(input);
-//                if (input == null) break;
-                if (input != null && input.length() > 0) {
-                    handleRequest(input);
-                }
-//            }
+            String input = br.readLine();
+            if (input != null && input.length() > 0) {
+                handleRequest(input);
+            }
         } catch (IOException e) {
-//            System.out.println(e);
-            e.printStackTrace();
+            if(DEBUG) {
+                e.printStackTrace();
+            }
         } finally {
-//            System.out.println("One client left.");
             try {
                 socket.close();
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                if (DEBUG) {
+                    e.printStackTrace();
+                }
             }
         }
 
         try {
             logFile.close();
+            br.close();
+            dos.close();
+            dis.close();
+            pw.close();
+            socket.close();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            if(DEBUG) {
+                e.printStackTrace();
+            }
         }
     }
 }
