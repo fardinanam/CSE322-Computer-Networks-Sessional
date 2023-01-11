@@ -32,6 +32,7 @@ public class HttpServerManager extends Thread {
         }
     }
     private void printResponse(String response) {
+        System.out.println("Sending: " + response);
         pw.println(response);
         pw.flush();
     }
@@ -102,10 +103,12 @@ public class HttpServerManager extends Thread {
      * @return a string of the response header
      */
     private String generateHtmlResponseHeader(String responseType, String contentType, int contentLength) {
+        String contentDisposition = contentType.contains("pdf") || contentType.contains("video") ? "attachment" : "inline";
         String responseHeader = "HTTP/1.1 " + responseType + "\r\n" +
                 "Server: Java HTTP Server: 1.1\r\n" +
                 "Date: " + new Date() + "\r\n" +
                 "Content-Type: " + contentType + "\r\n" +
+                "Content-Disposition: " + contentDisposition + "\r\n" +
                 "Content-Length: " + contentLength + "\r\n" +
                 "\r\n";
         return responseHeader;
