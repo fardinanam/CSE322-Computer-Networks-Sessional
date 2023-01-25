@@ -83,17 +83,17 @@ for {set i 0} {$i < $val(nn)} {incr i} {
     set node_($i) [$ns node]
     $node_($i) random-motion 0
     
-    # Set node position
+    # Set initial node position
     $node_($i) set X_ $x
     $node_($i) set Y_ $y
     $node_($i) set Z_ 0.0
-    $ns initial_node_pos $node_($i) 20
+    $ns initial_node_pos $node_($i) 20  
 
     # Set node movement
-    set tmov [expr (rand() * ($val(tend) - $val(tstart)) + $val(tstart))]
-    set destX [expr rand() * $val(hLen)]
-    set destY [expr rand() * $val(vLen)]
-    set speed [expr (rand() * ($val(vmax) - $val(vmin)) + $val(vmin))]
+    set tmov [expr (rand() * ($val(tend) - $val(tstart)) + $val(tstart))]   ;# start moving at random time
+    set destX [expr rand() * $val(hLen)]                                    ;# move to random position
+    set destY [expr rand() * $val(vLen)]                                    ;# move to random position  
+    set speed [expr (rand() * ($val(vmax) - $val(vmin)) + $val(vmin))]      ;# move at random speed
     $ns at $tmov "$node_($i) \
         setdest $destX \
         $destY \

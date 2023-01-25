@@ -10,6 +10,7 @@
 # NS2
 *.tr
 *.nam
+*.tcl
 
 # output files
 *.out

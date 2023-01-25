@@ -59,4 +59,4 @@ done
 
 echo "=========================" >> $resultFile
 # Generate the graphs using python script
-python3 graphGenerator.py $resultFile
+python3 graphGenerator.py $resultFile || echo "Error: could not generate graphs"

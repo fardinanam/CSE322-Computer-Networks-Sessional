@@ -45,15 +45,18 @@ BEGIN {
             }
         }
     }
-
-    if (eventType == "D") {
-        droppedPackets++;
-    }
 }
 
 END {
     simEndTime = eventStartTime;
     simTime = simEndTime - simStartTime;
+
+    droppedPackets = sentPackets - receivedPackets;
+
+    throughput = (totalReceivedBytes * 8) / simTime;
+    avgDelay = (totalDelay / receivedPackets);
+    deliveryRatio = (receivedPackets / sentPackets);
+    dropRatio = (droppedPackets / sentPackets);
 
     # print "Simulation Time: ", simTime;
     # print "Total Packets Sent: ", sentPackets;
@@ -61,14 +64,10 @@ END {
     # print "Total Packets Dropped: ", droppedPackets;
 
     # print "------------------------------------------------------";
-    # print "Throughput:", (totalReceivedBytes * 8) / simTime, "bits/sec";
-    # print "Average Delay:", (totalDelay / receivedPackets), "sec";
-    # print "Delivery Ratio:", (receivedPackets / sentPackets);
-    # print "Drop Ratio:", (droppedPackets / sentPackets);
-    throughput = (totalReceivedBytes * 8) / simTime;
-    avgDelay = (totalDelay / receivedPackets);
-    deliveryRatio = (receivedPackets / sentPackets);
-    dropRatio = (droppedPackets / sentPackets);
+    # print "Throughput:", throughput, "bits/sec";
+    # print "Average Delay:", avgDelay, "sec";
+    # print "Delivery Ratio:", deliveryRatio;
+    # print "Drop Ratio:", dropRatio;
 
     print throughput, avgDelay, deliveryRatio, dropRatio;
 }
