@@ -25,21 +25,21 @@ def makeTitleAndCreateGraphs(varyingParam : str, xs : list, throughputs : list, 
     xLabel = varyingParam
     
     yLabel = 'Throughput'
-    title =  yLabel + ' vs ' + varyingParam
-    yLabel = yLabel + ' (bps)'
+    title =  varyingParam + ' vs ' + yLabel
+    yLabel = yLabel + ' (kbps)'
     plotGraph(xs, throughputs, xLabel, yLabel, title, title+'.png')
 
     yLabel = 'Average Delay'
-    title = yLabel + ' vs ' + varyingParam
+    title = varyingParam + ' vs ' + yLabel
     yLabel = yLabel + ' (sec)'
     plotGraph(xs, avgDelays, xLabel, yLabel, title, title+'.png')
 
     yLabel = 'Delivery Ratio'
-    title = yLabel + ' vs ' + varyingParam
+    title = varyingParam + ' vs ' + yLabel
     plotGraph(xs, deliveryRatios, xLabel, yLabel, title, title+'.png')
 
     yLabel = 'Drop Ratio'
-    title = yLabel + ' vs ' + varyingParam
+    title = varyingParam + ' vs ' + yLabel
     plotGraph(xs, dropRatios, xLabel, yLabel, title, title+'.png')
 
 
@@ -100,7 +100,7 @@ if __name__ == "__main__":
                 if len(metrices) < 4:
                     continue
 
-                throughput.append(float(metrices[0]))
+                throughput.append(float(metrices[0])/1000)
                 avgDelay.append(float(metrices[1]))
                 deliveryRatio.append(float(metrices[2]))
                 dropRatio.append(float(metrices[3]))

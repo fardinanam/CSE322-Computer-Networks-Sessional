@@ -45,13 +45,17 @@ BEGIN {
             }
         }
     }
+
+    if (packetType == "exp" && eventType == "D") {
+        droppedPackets++;
+    }
 }
 
 END {
     simEndTime = eventStartTime;
     simTime = simEndTime - simStartTime;
 
-    droppedPackets = sentPackets - receivedPackets;
+    # droppedPackets = sentPackets - receivedPackets;
 
     throughput = (totalReceivedBytes * 8) / simTime;
     avgDelay = (totalDelay / receivedPackets);
