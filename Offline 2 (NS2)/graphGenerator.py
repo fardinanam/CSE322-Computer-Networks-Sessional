@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import sys
+import os
 
 def plotGraph(xs, ys, xLabel : str, yLabel : str, title : str, fileName : str):
     fig, ax = plt.subplots()
@@ -47,6 +48,9 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: python3 graphGenerator.py <input_file>")
         exit(1)
+    
+    if not os.path.isdir('graphs'):
+        os.mkdir('graphs')
 
     varyingParamIdx = -1 # area = 1, no. of nodes = 2, no. of flows = 3
     areaSizes = []
