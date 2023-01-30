@@ -26,21 +26,21 @@ def makeTitleAndCreateGraphs(varyingParam : str, xs : list, throughputs : list, 
     xLabel = varyingParam
     
     yLabel = 'Throughput'
-    title =  varyingParam + ' vs ' + yLabel
+    title = yLabel + ' vs ' + varyingParam
     yLabel = yLabel + ' (kbps)'
     plotGraph(xs, throughputs, xLabel, yLabel, title, title+'.png')
 
     yLabel = 'Average Delay'
-    title = varyingParam + ' vs ' + yLabel
+    title = yLabel + ' vs ' + varyingParam
     yLabel = yLabel + ' (sec)'
     plotGraph(xs, avgDelays, xLabel, yLabel, title, title+'.png')
 
     yLabel = 'Delivery Ratio'
-    title = varyingParam + ' vs ' + yLabel
+    title = yLabel + ' vs ' + varyingParam
     plotGraph(xs, deliveryRatios, xLabel, yLabel, title, title+'.png')
 
     yLabel = 'Drop Ratio'
-    title = varyingParam + ' vs ' + yLabel
+    title = yLabel + ' vs ' + varyingParam
     plotGraph(xs, dropRatios, xLabel, yLabel, title, title+'.png')
 
 
